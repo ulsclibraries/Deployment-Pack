@@ -1,0 +1,1 @@
+setup.exe /configure ulsc_odt.xml

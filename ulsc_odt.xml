@@ -1,0 +1,20 @@
+<Configuration ID="beac3b58-a46a-4070-ac2e-f8436e69cc1e">
+  <Info Description="" />
+  <Add OfficeClientEdition="64" Channel="PerpetualVL2024">
+    <Product ID="Standard2024Volume" PIDKEY="V28N4-JG22K-W66P8-VTMGK-H6HGR">
+      <Language ID="MatchOS" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="OneNote" />
+    </Product>
+  </Add>
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
+  <Property Name="DeviceBasedLicensing" Value="0" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Property Name="AUTOACTIVATE" Value="1" />
+  <Updates Enabled="TRUE" />
+  <RemoveMSI />
+  <AppSettings>
+    <Setup Name="Company" Value="Upper Lachlan Shire Libraries" />
+  </AppSettings>
+</Configuration>
