@@ -1,5 +1,5 @@
-# Windows 11 Pro - Disable LibUser Autologin
-# This script disables automatic login (login screen will be shown on startup)
+# Windows 11 Pro - Enable LibUser Autologin
+# This script enables automatic login for LibUser (blank password)
 # Requires Administrator privileges
 
 function Test-Administrator {
@@ -33,7 +33,7 @@ function Get-AutoLoginStatus {
     }
 }
 
-function Disable-AutoLogin {
+function Enable-AutoLogin {
     try {
         $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
         
@@ -42,14 +42,16 @@ function Disable-AutoLogin {
             return $false
         }
         
-        Set-ItemProperty -Path $registryPath -Name "AutoAdminLogon" -Value "0" -Type String -ErrorAction Stop
-        Remove-ItemProperty -Path $registryPath -Name "DefaultPassword" -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $registryPath -Name "AutoAdminLogon"   -Value "1"            -Type String -ErrorAction Stop
+        Set-ItemProperty -Path $registryPath -Name "DefaultUserName"   -Value "LibUser"      -Type String -ErrorAction Stop
+        Set-ItemProperty -Path $registryPath -Name "DefaultPassword"   -Value ""             -Type String -ErrorAction Stop
+        Set-ItemProperty -Path $registryPath -Name "DefaultDomainName" -Value $env:COMPUTERNAME -Type String -ErrorAction Stop
         
-        Write-LogEntry "Autologin disabled"
+        Write-LogEntry "Autologin enabled for LibUser"
         return $true
     }
     catch {
-        Write-LogEntry "Error disabling autologin: $($_.Exception.Message)"
+        Write-LogEntry "Error enabling autologin: $($_.Exception.Message)"
         return $false
     }
 }
@@ -59,7 +61,7 @@ function Disable-AutoLogin {
 # ============================================
 
 Write-LogEntry "========================================================"
-Write-LogEntry "Windows 11 Pro - Disable LibUser Autologin"
+Write-LogEntry "Windows 11 Pro - Enable LibUser Autologin"
 Write-LogEntry "========================================================"
 
 if (-not (Test-Administrator)) {
@@ -67,26 +69,37 @@ if (-not (Test-Administrator)) {
     exit 1
 }
 
+# Verify LibUser exists
+$libUser = Get-LocalUser -Name "LibUser" -ErrorAction SilentlyContinue
+if (-not $libUser) {
+    Write-LogEntry "ERROR: LibUser account does not exist. Run 2_CreateLibUser.ps1 first."
+    exit 1
+}
+
 try {
     $status = Get-AutoLoginStatus
     
-    if (-not $status.Enabled) {
-        Write-LogEntry "Autologin already disabled - no action taken."
-        exit 0
-    }
-    
-    Write-LogEntry "Autologin is currently enabled for: $($status.Username)"
-
-    Write-LogEntry "Disabling autologin..."
-    if (Disable-AutoLogin) {
-        Write-LogEntry "[OK] Autologin disabled. Login screen will appear on next restart."
+    if ($status.Enabled) {
+        if ($status.Username -eq "LibUser") {
+            Write-LogEntry "Autologin already enabled for LibUser - no action taken."
+            exit 0
+        }
+        Write-LogEntry "Autologin currently enabled for: $($status.Username) - re-configuring for LibUser..."
     }
     else {
-        Write-LogEntry "Failed to disable autologin."
+        Write-LogEntry "Autologin is currently disabled."
+    }
+
+    Write-LogEntry "Enabling autologin for LibUser..."
+    if (Enable-AutoLogin) {
+        Write-LogEntry "[OK] Autologin enabled. System will auto-login as LibUser on next restart."
+    }
+    else {
+        Write-LogEntry "Failed to enable autologin."
         exit 1
     }
 }
 catch {
-    Write-LogEntry "Error during disable autologin: $($_.Exception.Message)"
+    Write-LogEntry "Error during enable autologin: $($_.Exception.Message)"
     exit 1
 }
