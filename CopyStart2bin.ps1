@@ -32,11 +32,9 @@ if (-not (Test-Administrator)) {
     exit 1
 }
 
-# Get script directory
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
 # Define paths for start2.bin
-$start2SourceFile = Join-Path $scriptDir "start2.bin"
+$start2Url = "https://raw.githubusercontent.com/ulsclibraries/Deployment-Pack/d592d8988289999a429894435ef9a4dbbda2c23a/start2.bin"
+$start2SourceFile = Join-Path $env:TEMP "start2.bin"
 $start2Destination = "C:\Users\LibUser\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\start2.bin"
 $start2DestinationFolder = Split-Path -Parent $start2Destination
 $start2Backup = "C:\Users\LibUser\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState\start2.bin.old"
@@ -45,16 +43,23 @@ $successCount = 0
 $totalCopies = 1
 
     # ===== COPY START2.BIN =====
-        
-    # Check if start2.bin source file exists
-    if (-not (Test-Path $start2SourceFile)) {
-        Write-LogEntry "Warning: start2.bin not found: $start2SourceFile"
+
+    # Download start2.bin from GitHub
+    Write-LogEntry "Downloading start2.bin from: $start2Url"
+    try {
+        Invoke-WebRequest -Uri $start2Url -OutFile $start2SourceFile -UseBasicParsing -ErrorAction Stop
+        Write-LogEntry "Downloaded start2.bin to: $start2SourceFile"
+    }
+    catch {
+        Write-LogEntry "Error downloading start2.bin: $($_.Exception.Message)"
         Write-LogEntry "Skipping Start Menu layout copy."
-        Write-LogEntry "Warning: start2.bin not found - skipping copy"
+    }
+
+    if (-not (Test-Path $start2SourceFile)) {
+        Write-LogEntry "Warning: start2.bin not found after download attempt - skipping copy"
     }
     else {
-        Write-LogEntry "start2.bin found: $start2SourceFile"
-        Write-LogEntry "start2.bin found: $start2SourceFile"
+        Write-LogEntry "start2.bin ready: $start2SourceFile"
         
         # Create destination folder if it doesn't exist
         if (-not (Test-Path $start2DestinationFolder)) {
@@ -100,6 +105,13 @@ $totalCopies = 1
         }
         catch {
             Write-LogEntry "Error copying start2.bin: $($_.Exception.Message)"
+        }
+        finally {
+            # Clean up temp file
+            if (Test-Path $start2SourceFile) {
+                Remove-Item -Path $start2SourceFile -Force -ErrorAction SilentlyContinue
+                Write-LogEntry "Removed temp file: $start2SourceFile"
+            }
         }
     }
 
