@@ -43,7 +43,9 @@ function Disable-AutoLogin {
         }
         
         Set-ItemProperty -Path $registryPath -Name "AutoAdminLogon" -Value "0" -Type String -ErrorAction Stop
-        Remove-ItemProperty -Path $registryPath -Name "DefaultPassword" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path $registryPath -Name "DefaultUserName"   -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path $registryPath -Name "DefaultPassword"   -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path $registryPath -Name "DefaultDomainName" -ErrorAction SilentlyContinue
         
         Write-LogEntry "Autologin disabled"
         return $true
